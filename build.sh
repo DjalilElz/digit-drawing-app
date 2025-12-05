@@ -5,4 +5,7 @@ set -o errexit
 pip install -r requirements.txt
 
 python manage.py collectstatic --no-input
-python manage.py migrate
+
+# Remove pgbouncer parameter for migrations (not supported)
+export MIGRATION_DB_URL="${DATABASE_URL/\?pgbouncer=true/}"
+DATABASE_URL="$MIGRATION_DB_URL" python manage.py migrate
