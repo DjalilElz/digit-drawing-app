@@ -5,6 +5,9 @@ from django.db.models import Count
 from .models import DrawnDigit
 import json
 import random
+import base64
+from io import BytesIO
+from PIL import Image
 
 # Create your views here.
 
@@ -37,11 +40,26 @@ def save_drawing(request):
             image_data = data.get('image')
             username = data.get('username', 'Anonymous').strip() or 'Anonymous'
             
-            # Save to database
+            # Convert base64 to PIL Image
+            image_data_base64 = image_data.split(',')[1]  # Remove data:image/png;base64, prefix
+            image_bytes = base64.b64decode(image_data_base64)
+            img = Image.open(BytesIO(image_bytes))
+            
+            # Convert to grayscale and resize to 28x28
+            img = img.convert('L')  # Convert to grayscale
+            img_resized = img.resize((28, 28), Image.Resampling.LANCZOS)
+            
+            # Convert back to base64
+            buffered = BytesIO()
+            img_resized.save(buffered, format="PNG")
+            img_28x28_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
+            img_28x28_data = f"data:image/png;base64,{img_28x28_base64}"
+            
+            # Save to database with 28x28 image
             drawn_digit = DrawnDigit.objects.create(
                 username=username,
                 digit_label=digit_label,
-                image_data=image_data
+                image_data=img_28x28_data
             )
             
             # Get updated user stats
