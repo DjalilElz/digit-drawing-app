@@ -1,13 +1,39 @@
-# Digit Drawing Data Collection App
+# Handwritten Digit Collection Challenge 🎯
 
-A Django web application for collecting handwritten digit drawings, optimized for mobile devices.
+A Django web application designed to collect handwritten digit samples for Machine Learning research and Deep Learning projects. This gamified data collection platform allows users to compete while contributing valuable training data for handwriting recognition models.
 
-## Features
-- Interactive HTML5 canvas for drawing digits (0-9)
-- Touch and mouse support
-- Automatic data collection and storage
-- Base64 image encoding
-- PostgreSQL database support (Supabase)
+## 🎓 Project Purpose
+
+This application is part of an Artificial Intelligence research project for Deep Learning studies. The goal is to collect diverse handwriting samples from different users to:
+
+- Train and improve digit recognition models
+- Study handwriting pattern variations across users
+- Build datasets for machine learning projects
+- Research human handwriting behavior
+
+Each contribution helps advance AI research and education. Thank you for participating! 🙏
+
+## ✨ Features
+
+- **🎨 Interactive Drawing Canvas**: HTML5 canvas (280×280) with touch and mouse support
+- **🏆 Competition Mode**: Users compete on a leaderboard by contributing more samples
+- **👤 User Tracking**: Personal counters and username persistence
+- **📊 Real-time Leaderboard**: Top 10 contributors with live updates
+- **🖼️ Smart Image Processing**: Automatic resize to 28×28 grayscale (MNIST-compatible)
+- **💾 Dual Format Storage**: Keeps original 280×280 submissions + generates 28×28 for ML
+- **⚡ Instant Feedback**: No page reloads, immediate response after submission
+- **🎲 Random Digit Assignment**: Ensures balanced dataset collection
+- **📱 Mobile Optimized**: Responsive design for all devices
+- **☁️ Cloud Database**: PostgreSQL via Supabase for scalable storage
+
+## 🔧 Technical Stack
+
+- **Backend**: Django 6.0
+- **Database**: PostgreSQL (Supabase)
+- **Image Processing**: Pillow (PIL)
+- **Deployment**: Render.com
+- **Static Files**: WhiteNoise
+- **Server**: Gunicorn
 
 ## Local Development
 
@@ -83,14 +109,73 @@ Click "Create Web Service" and wait for deployment to complete.
 - `DATABASE_URL`: PostgreSQL connection string from Supabase
 - `ALLOWED_HOSTS`: Comma-separated list of allowed hosts
 
-## Database Structure
+## 📊 Database Structure
 
 **DrawnDigit Model:**
+- `id`: Primary key
+- `username`: CharField - contributor's name (default: 'Anonymous')
 - `digit_label`: Integer (0-9) - the digit that was drawn
-- `image_data`: TextField - base64 encoded PNG image
+- `image_data`: TextField - base64 encoded PNG image (28×28 grayscale for new submissions)
 - `created_at`: DateTime - timestamp of creation
 
-## Exporting Data
+**Note**: Old submissions (280×280) remain unchanged. New submissions are automatically resized to 28×28 grayscale for ML compatibility.
+
+## 📦 Exporting Data for Machine Learning
+
+Use the built-in management command to export collected data:
+
+### Export as JSON (includes all metadata)
+```bash
+python manage.py export_digits --output my_dataset.json --format json --resize 28
+```
+
+### Export as NumPy arrays (requires numpy)
+```bash
+pip install numpy
+python manage.py export_digits --output my_dataset.npz --format numpy --resize 28
+```
+
+### Options:
+- `--output`: Output file path (default: `digits_export.json`)
+- `--format`: `json` or `numpy` (default: `json`)
+- `--resize`: Resize all images to `28` or `280` (default: `28`)
+
+### Using the exported data:
+
+**JSON format:**
+```python
+import json
+
+with open('my_dataset.json', 'r') as f:
+    data = json.load(f)
+
+for sample in data:
+    print(f"User: {sample['username']}, Label: {sample['label']}")
+```
+
+**NumPy format:**
+```python
+import numpy as np
+
+data = np.load('my_dataset.npz')
+images = data['images']  # Shape: (N, 28, 28)
+labels = data['labels']   # Shape: (N,)
+usernames = data['usernames']  # Shape: (N,)
+
+print(f"Dataset size: {len(images)} samples")
+print(f"Image shape: {images[0].shape}")
+```
+
+## 🎮 How It Works
+
+1. **User enters name** → Stored in localStorage for persistence
+2. **Random digit displayed** → Ensures balanced data collection
+3. **User draws on canvas** → 280×280 touch/mouse enabled
+4. **Submit drawing** → Converts to 28×28 grayscale + saves both formats
+5. **Instant feedback** → New digit + updated stats without page reload
+6. **Leaderboard updates** → Top 10 refreshes every 10 seconds
+
+## 🚀 Deployment Notes
 
 To export collected drawings for machine learning:
 

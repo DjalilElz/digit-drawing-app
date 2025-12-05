@@ -33,6 +33,12 @@ def index(request):
 
 @csrf_exempt
 def save_drawing(request):
+    """
+    Save a drawing to the database.
+    
+    New drawings are automatically resized to 28x28 grayscale for ML compatibility.
+    Old drawings in the database remain unchanged at their original size.
+    """
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
